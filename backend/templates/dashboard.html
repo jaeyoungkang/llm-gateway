@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LLM 대시보드</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">LLM 사용 로그</h1>
+        
+        <!-- 채팅 테스트 -->
+        <div class="bg-white p-6 rounded-lg shadow mb-8">
+            <h2 class="text-xl font-bold mb-4">테스트</h2>
+            <input id="messageInput" type="text" placeholder="메시지 입력" 
+                   class="w-full p-3 border rounded mb-4">
+            <button onclick="sendMessage()" 
+                    class="bg-blue-500 text-white px-6 py-2 rounded">전송</button>
+            <div id="response" class="mt-4 p-4 bg-gray-50 rounded hidden"></div>
+        </div>
+        
+        <!-- 로그 목록 -->
+        <div class="bg-white rounded-lg shadow">
+            <div class="p-6 border-b">
+                <h2 class="text-xl font-bold">최근 로그</h2>
+            </div>
+            <div id="logs" class="divide-y"></div>
+        </div>
+    </div>
+
+    <script>
+        async function sendMessage() {
+            const message = document.getElementById('messageInput').value;
+            const response = await fetch('/chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({message})
+            });
+            const result = await response.json();
+            
+            document.getElementById('response').innerHTML = result.response;
+            document.getElementById('response').classList.remove('hidden');
+            
+            loadLogs(); // 로그 새로고침
+        }
+        
+        async function loadLogs() {
+            const response = await fetch('/logs');
+            const logs = await response.json();
+            
+            const logsDiv = document.getElementById('logs');
+            logsDiv.innerHTML = logs.map(log => `
+                <div class="p-4">
+                    <div class="text-sm text-gray-500">${log.time}</div>
+                    <div class="font-medium">입력: ${log.input}</div>
+                    <div class="text-gray-700 mt-2">출력: ${log.output.substring(0, 200)}...</div>
+                </div>
+            `).join('');
+        }
+        
+        // 페이지 로드시 로그 불러오기
+        loadLogs();
+    </script>
+</body>
+</html>
