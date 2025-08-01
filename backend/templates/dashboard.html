@@ -28,19 +28,43 @@
     </div>
 
     <script>
+        let isLoading = false;
+        
         async function sendMessage() {
+            if (isLoading) return; // 이미 요청 중이면 무시
+            
             const message = document.getElementById('messageInput').value;
-            const response = await fetch('/chat', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({message})
-            });
-            const result = await response.json();
+            const button = document.querySelector('button');
             
-            document.getElementById('response').innerHTML = result.response;
-            document.getElementById('response').classList.remove('hidden');
+            if (!message.trim()) return;
             
-            loadLogs(); // 로그 새로고침
+            // 로딩 상태로 변경
+            isLoading = true;
+            button.textContent = '전송 중...';
+            button.disabled = true;
+            
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({message})
+                });
+                const result = await response.json();
+                
+                document.getElementById('response').innerHTML = result.response;
+                document.getElementById('response').classList.remove('hidden');
+                document.getElementById('messageInput').value = '';
+                
+                loadLogs();
+                
+            } catch (error) {
+                alert('오류: ' + error.message);
+            } finally {
+                // 항상 버튼 복구
+                isLoading = false;
+                button.textContent = '전송';
+                button.disabled = false;
+            }
         }
         
         async function loadLogs() {
@@ -57,7 +81,6 @@
             `).join('');
         }
         
-        // 페이지 로드시 로그 불러오기
         loadLogs();
     </script>
 </body>
