@@ -48,7 +48,7 @@ test_endpoint() {
     fi
     
     http_code=$(echo "$response" | tail -n1)
-    body=$(echo "$response" | head -n -1)
+    body=$(echo "$response" | sed '$d')
     
     if [ "$http_code" = "$expected_status" ]; then
         echo -e "${GREEN}✅ 성공 (HTTP $http_code)${NC}"
@@ -87,7 +87,7 @@ chat_response=$(curl -s -w "\n%{http_code}" -X POST \
     "${SERVICE_URL}/chat" 2>/dev/null)
 
 chat_http_code=$(echo "$chat_response" | tail -n1)
-chat_body=$(echo "$chat_response" | head -n -1)
+chat_body=$(echo "$chat_response" | sed '$d')
 
 if [ "$chat_http_code" = "200" ]; then
     echo -e "${GREEN}✅ 성공 (HTTP $chat_http_code)${NC}"
@@ -124,4 +124,3 @@ if [ $FAILED -eq 0 ]; then
 else
     echo -e "${RED}💥 일부 테스트가 실패했습니다. 로그를 확인해주세요.${NC}"
     exit 1
-fi
